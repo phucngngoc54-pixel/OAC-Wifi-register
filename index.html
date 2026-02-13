@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,21 +8,210 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
+        body { font-family: 'Inter', sans-serif; }
+        .hidden { display: none; }
+        .fade-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
-<script type="importmap">
-{
-  "imports": {
-    "react/": "https://esm.sh/react@^19.2.4/",
-    "react": "https://esm.sh/react@^19.2.4",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.4/"
-  }
-}
-</script>
 </head>
-<body class="bg-gray-50 text-gray-900">
-    <div id="root"></div>
+<body class="bg-gray-50 text-gray-900 min-h-screen flex items-center justify-center p-4 sm:p-6">
+
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden transition-all duration-300 border border-gray-100">
+        <!-- Header Gradient Bar -->
+        <div class="h-2 bg-gradient-to-r from-blue-600 to-indigo-600"></div>
+
+        <div class="p-8">
+            <!-- Registration View -->
+            <div id="registration-view">
+                <div class="text-center mb-8">
+                    <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-50 rounded-full mb-4">
+                        <i class="fa-solid fa-laptop-medical text-2xl text-blue-600"></i>
+                    </div>
+                    <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Device Registration</h1>
+                    <p class="text-gray-500 mt-2 text-sm">Register your workspace device securely.</p>
+                </div>
+
+                <!-- Network Status Banner -->
+                <div id="ip-status-banner" class="mb-6 p-3 rounded-lg flex items-center gap-3 text-xs font-medium bg-gray-50 text-gray-500 transition-colors duration-300">
+                    <i id="ip-icon" class="fa-solid fa-spinner fa-spin"></i>
+                    <span id="ip-text">Detecting network...</span>
+                </div>
+
+                <div class="space-y-6">
+                    <div>
+                        <label for="fullName" class="block text-sm font-semibold text-gray-700 mb-2">Full Name</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fa-regular fa-user text-gray-400"></i>
+                            </div>
+                            <input
+                                type="text"
+                                id="fullName"
+                                placeholder="Enter your full name"
+                                class="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder:text-gray-400"
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Error Message -->
+                    <div id="error-banner" class="hidden bg-red-50 border-l-4 border-red-500 p-4 rounded-md fade-in">
+                        <div class="flex">
+                            <i class="fa-solid fa-circle-xmark text-red-400 mt-0.5"></i>
+                            <p id="error-text" class="ml-3 text-sm text-red-700 font-medium"></p>
+                        </div>
+                    </div>
+
+                    <button
+                        id="register-btn"
+                        class="w-full py-4 px-6 rounded-xl font-bold text-white shadow-lg transform transition-all active:scale-95 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 hover:shadow-xl disabled:bg-blue-400 disabled:cursor-not-allowed"
+                    >
+                        Register My Device
+                    </button>
+                </div>
+            </div>
+
+            <!-- Success View -->
+            <div id="success-view" class="hidden text-center py-10 fade-in">
+                <div class="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-6">
+                    <i class="fa-solid fa-check text-4xl text-green-600"></i>
+                </div>
+                <h2 class="text-3xl font-extrabold text-green-600 mb-2">Success!</h2>
+                <p class="text-gray-600">Your device has been registered successfully.</p>
+                <button 
+                    onclick="location.reload()"
+                    class="mt-8 text-blue-600 font-medium hover:underline flex items-center justify-center mx-auto"
+                >
+                    Register another device
+                </button>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="bg-gray-50 p-6 border-t border-gray-100">
+            <p class="text-center text-xs text-gray-400">
+                Registration is only available via internal OAC network.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const OFFICE_IP = "14.232.210.67";
+        const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbz-5mv4TtLv4Rtg8hGQQ2CK2dC624shDNJpmxdH5lyWZu7kSJxk4LrsxBL01CqMVO4q/exec";
+        const IP_API = "https://api.ipify.org?format=json";
+
+        let currentIp = null;
+
+        // Elements
+        const fullNameInput = document.getElementById('fullName');
+        const registerBtn = document.getElementById('register-btn');
+        const errorBanner = document.getElementById('error-banner');
+        const errorText = document.getElementById('error-text');
+        const ipStatusBanner = document.getElementById('ip-status-banner');
+        const ipIcon = document.getElementById('ip-icon');
+        const ipText = document.getElementById('ip-text');
+        const registrationView = document.getElementById('registration-view');
+        const successView = document.getElementById('success-view');
+
+        // Initial IP Fetch
+        async function fetchIp() {
+            try {
+                const res = await fetch(IP_API);
+                const data = await res.json();
+                currentIp = data.ip;
+                
+                ipStatusBanner.classList.remove('bg-gray-50', 'text-gray-500');
+                if (currentIp === OFFICE_IP) {
+                    ipStatusBanner.classList.add('bg-green-50', 'text-green-700');
+                    ipIcon.className = "fa-solid fa-wifi";
+                } else {
+                    ipStatusBanner.classList.add('bg-amber-50', 'text-amber-700');
+                    ipIcon.className = "fa-solid fa-triangle-exclamation";
+                }
+                ipText.textContent = `Current IP: ${currentIp}`;
+            } catch (err) {
+                console.error("IP detection failed:", err);
+                ipText.textContent = "Network detection failed";
+                ipIcon.className = "fa-solid fa-circle-xmark";
+            }
+        }
+
+        // Logic
+        registerBtn.addEventListener('click', async () => {
+            const name = fullNameInput.value.trim();
+            
+            // Validation
+            if (!name) {
+                showError("Please enter your full name.");
+                return;
+            }
+
+            if (!currentIp) {
+                showError("Checking network connection, please wait...");
+                return;
+            }
+
+            if (currentIp !== OFFICE_IP) {
+                showError("Vui lòng dùng Wifi OAC");
+                return;
+            }
+
+            // Processing
+            hideError();
+            setLoading(true);
+
+            try {
+                const payload = {
+                    name: name,
+                    userAgent: navigator.userAgent,
+                    ip: currentIp
+                };
+
+                await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                // Assume success if no error thrown (standard for no-cors webhooks)
+                showSuccess();
+            } catch (err) {
+                console.error("Submission failed:", err);
+                showError("Submission failed. Please try again.");
+                setLoading(false);
+            }
+        });
+
+        // UI Helpers
+        function showError(msg) {
+            errorText.textContent = msg;
+            errorBanner.classList.remove('hidden');
+        }
+
+        function hideError() {
+            errorBanner.classList.add('hidden');
+        }
+
+        function setLoading(isLoading) {
+            if (isLoading) {
+                registerBtn.disabled = true;
+                registerBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
+            } else {
+                registerBtn.disabled = false;
+                registerBtn.textContent = 'Register My Device';
+            }
+        }
+
+        function showSuccess() {
+            registrationView.classList.add('hidden');
+            successView.classList.remove('hidden');
+        }
+
+        // Load
+        fetchIp();
+    </script>
 </body>
 </html>
