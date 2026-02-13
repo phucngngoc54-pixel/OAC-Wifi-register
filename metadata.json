@@ -1,0 +1,5 @@
+{
+  "name": "OAC Device Registration Tool",
+  "description": "A secure device registration utility that verifies office network connectivity before submitting device details to a central registry.",
+  "requestFramePermissions": []
+}
