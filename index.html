@@ -30,6 +30,10 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        .mono {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+
         /* Success Animation */
         .checkmark {
             width: 80px;
@@ -120,14 +124,15 @@
                             </div>
                         </div>
 
-                        <!-- Device Name Input -->
+                        <!-- MAC Address Input -->
                         <div>
-                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Device Name</label>
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">MAC Address</label>
                             <input
                                 type="text"
-                                id="deviceName"
-                                placeholder="Hostname / Tên máy"
-                                class="w-full bg-slate-800 border border-slate-700 text-white px-4 py-3.5 rounded-2xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all placeholder:text-slate-600 font-medium"
+                                id="macAddress"
+                                maxlength="17"
+                                placeholder="AA:BB:CC:DD:EE:FF"
+                                class="w-full bg-slate-800 border border-slate-700 text-white px-4 py-3.5 rounded-2xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all placeholder:text-slate-600 font-medium mono"
                             >
                         </div>
                     </div>
@@ -137,7 +142,7 @@
                         <div class="flex gap-3">
                             <i class="fa-solid fa-circle-info text-indigo-400 mt-1"></i>
                             <div>
-                                <h4 class="text-xs font-bold text-indigo-300 uppercase tracking-tighter mb-1">Guide</h4>
+                                <h4 class="text-xs font-bold text-indigo-300 uppercase tracking-tighter mb-1">How to find MAC Address</h4>
                                 <p id="guide-text" class="text-sm text-indigo-100/80 leading-relaxed"></p>
                             </div>
                         </div>
@@ -169,7 +174,7 @@
                     </svg>
                 </div>
                 <h2 class="text-3xl font-extrabold text-white mb-3">Registration Successful!</h2>
-                <p class="text-slate-400 max-w-xs mx-auto mb-10">Your device information has been recorded according to OAC's network policy.</p>
+                <p class="text-slate-400 max-w-xs mx-auto mb-10 text-sm">Thông tin thiết bị đã được ghi nhận. Hệ thống sẽ xử lý và cấp quyền truy cập sớm nhất có thể.</p>
                 <button 
                     onclick="location.reload()"
                     class="px-8 py-3 bg-slate-800 hover:bg-slate-700 rounded-xl text-sm font-bold text-white transition-all inline-flex items-center gap-2"
@@ -190,14 +195,14 @@
 
     <script>
         const OFFICE_IP = "14.232.210.67";
-        const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbz-diioposq0EbPTm-X7pMA0KsefRSQ9VQKV9VRfFepdSZdvgUw6M6739axW5hkeRfO/exec";
+        const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzp55iIP10jDPRw0BHhXNcDeAV13x6zegspma2i453ylQiywOqp-XNzgnkHUadTRftV/exec";
         const IP_API = "https://api.ipify.org?format=json";
 
         const guides = {
-            'iPhone': 'Vào Cài đặt > Cài đặt chung > Giới thiệu > Tên.',
-            'Android': 'Vào Cài đặt > Giới thiệu điện thoại > Tên thiết bị.',
-            'Windows': 'Nhấn phím Windows, gõ "About your PC" và xem "Device name".',
-            'Mac': 'Vào System Settings > General > About > Name.'
+            'iPhone': 'Cài đặt > Wi-Fi > Bấm (i) cạnh Wifi OAC > Copy Địa chỉ Wi-Fi.',
+            'Android': 'Cài đặt > Wifi > Bánh răng cạnh Wifi OAC > Xem thêm > Địa chỉ MAC.',
+            'Windows': 'Settings > Network & internet > Wi-Fi > Hardware properties > Physical address (MAC).',
+            'Mac': 'Wifi Settings > Details cạnh Wifi OAC > Hardware > MAC Address.'
         };
 
         let currentIp = null;
@@ -205,7 +210,7 @@
         // DOM Elements
         const fullNameInput = document.getElementById('fullName');
         const deviceTypeSelect = document.getElementById('deviceType');
-        const deviceNameInput = document.getElementById('deviceName');
+        const macInput = document.getElementById('macAddress');
         const registerBtn = document.getElementById('register-btn');
         const errorBanner = document.getElementById('error-banner');
         const errorText = document.getElementById('error-text');
@@ -243,6 +248,19 @@
             }
         }
 
+        // MAC Address Auto-formatting
+        macInput.addEventListener('input', (e) => {
+            let value = e.target.value.toUpperCase().replace(/[^0-9A-F]/g, '');
+            let formatted = "";
+            for (let i = 0; i < value.length; i++) {
+                if (i > 0 && i % 2 === 0 && formatted.length < 17) {
+                    formatted += ":";
+                }
+                formatted += value[i];
+            }
+            e.target.value = formatted.substring(0, 17);
+        });
+
         // Dynamic Guide Logic
         deviceTypeSelect.addEventListener('change', (e) => {
             const val = e.target.value;
@@ -258,11 +276,16 @@
         registerBtn.addEventListener('click', async () => {
             const name = fullNameInput.value.trim();
             const deviceType = deviceTypeSelect.value;
-            const deviceName = deviceNameInput.value.trim();
+            const mac = macInput.value.trim();
             
             // Validation
-            if (!name || !deviceType || !deviceName) {
+            if (!name || !deviceType || !mac) {
                 showError("Vui lòng điền đầy đủ tất cả thông tin.");
+                return;
+            }
+
+            if (mac.length !== 17) {
+                showError("Địa chỉ MAC phải đủ 17 ký tự (VD: AA:BB:CC:DD:EE:FF)");
                 return;
             }
 
@@ -280,20 +303,13 @@
             setLoading(true);
 
             try {
-                // Construct payload exactly as requested
-                // Column B: Full Name (name)
-                // Column C: Device Name (deviceName)
-                // Column D: Device Info (userAgent)
-                // Column E: Public IP (ip)
+                // Construct payload: {name, deviceType, mac, ip}
                 const payload = {
                     name: name,
-                    deviceName: deviceName,
-                    userAgent: navigator.userAgent,
+                    deviceType: deviceType,
+                    mac: mac,
                     ip: currentIp
                 };
-
-                // Add deviceType to payload too as it might be useful for the script
-                payload.deviceType = deviceType;
 
                 await fetch(WEBHOOK_URL, {
                     method: 'POST',
@@ -302,8 +318,6 @@
                     body: JSON.stringify(payload)
                 });
 
-                // Google Apps Script no-cors won't return a readable response body,
-                // we assume success if fetch doesn't throw.
                 showSuccess();
             } catch (err) {
                 console.error("Submission failed:", err);
