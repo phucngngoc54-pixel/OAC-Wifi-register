@@ -1,217 +1,136 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OAC Device Registration</title>
+    <title>OAC Register - Whitelist</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .hidden { display: none; }
-        .fade-in { animation: fadeIn 0.5s ease-out; }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        .guide-enter { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-900 min-h-screen flex items-center justify-center p-4 sm:p-6">
-
-    <div class="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden transition-all duration-300 border border-gray-100">
-        <!-- Header Gradient Bar -->
-        <div class="h-2 bg-gradient-to-r from-blue-600 to-indigo-600"></div>
-
-        <div class="p-8">
-            <!-- Registration View -->
-            <div id="registration-view">
-                <div class="text-center mb-8">
-                    <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-50 rounded-full mb-4">
-                        <i class="fa-solid fa-laptop-medical text-2xl text-blue-600"></i>
-                    </div>
-                    <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Device Registration</h1>
-                    <p class="text-gray-500 mt-2 text-sm">Register your workspace device securely.</p>
-                </div>
-
-                <!-- Network Status Banner -->
-                <div id="ip-status-banner" class="mb-6 p-3 rounded-lg flex items-center gap-3 text-xs font-medium bg-gray-50 text-gray-500 transition-colors duration-300">
-                    <i id="ip-icon" class="fa-solid fa-spinner fa-spin"></i>
-                    <span id="ip-text">Detecting network...</span>
-                </div>
-
-                <div class="space-y-6">
-                    <div>
-                        <label for="fullName" class="block text-sm font-semibold text-gray-700 mb-2">Full Name</label>
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fa-regular fa-user text-gray-400"></i>
-                            </div>
-                            <input
-                                type="text"
-                                id="fullName"
-                                placeholder="Enter your full name"
-                                class="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder:text-gray-400"
-                            >
-                        </div>
-                    </div>
-
-                    <!-- Error Message -->
-                    <div id="error-banner" class="hidden bg-red-50 border-l-4 border-red-500 p-4 rounded-md fade-in">
-                        <div class="flex">
-                            <i class="fa-solid fa-circle-xmark text-red-400 mt-0.5"></i>
-                            <p id="error-text" class="ml-3 text-sm text-red-700 font-medium"></p>
-                        </div>
-                    </div>
-
-                    <button
-                        id="register-btn"
-                        class="w-full py-4 px-6 rounded-xl font-bold text-white shadow-lg transform transition-all active:scale-95 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 hover:shadow-xl disabled:bg-blue-400 disabled:cursor-not-allowed"
-                    >
-                        Register My Device
-                    </button>
-                </div>
+<body class="bg-slate-900 flex items-center justify-center min-h-screen p-4 text-white font-sans">
+    <div class="bg-slate-800 p-6 rounded-3xl shadow-2xl w-full max-w-sm border border-slate-700">
+        <div id="form-container">
+            <h1 class="text-2xl font-black text-center mb-1 text-blue-400">OAC WIFI</h1>
+            <p class="text-slate-400 text-center text-[11px] uppercase tracking-widest mb-6 font-bold">Registration Portal</p>
+            
+            <!-- Họ tên -->
+            <div class="mb-4">
+                <label class="block text-[10px] uppercase text-slate-500 mb-1 ml-1">Họ và Tên</label>
+                <input type="text" id="userName" placeholder="VD: Đức Anh" 
+                    class="w-full bg-slate-700 border border-slate-600 rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500 text-white text-sm">
             </div>
 
-            <!-- Success View -->
-            <div id="success-view" class="hidden text-center py-10 fade-in">
-                <div class="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-6">
-                    <i class="fa-solid fa-check text-4xl text-green-600"></i>
-                </div>
-                <h2 class="text-3xl font-extrabold text-green-600 mb-2">Success!</h2>
-                <p class="text-gray-600">Your device has been registered successfully.</p>
-                <button 
-                    onclick="location.reload()"
-                    class="mt-8 text-blue-600 font-medium hover:underline flex items-center justify-center mx-auto"
-                >
-                    Register another device
-                </button>
+            <!-- Loại thiết bị -->
+            <div class="mb-4">
+                <label class="block text-[10px] uppercase text-slate-500 mb-1 ml-1">Loại thiết bị</label>
+                <select id="deviceType" onchange="updateGuide()"
+                    class="w-full bg-slate-700 border border-slate-600 rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500 text-white text-sm cursor-pointer">
+                    <option value="">-- Chọn loại máy --</option>
+                    <option value="iPhone">iPhone (iOS)</option>
+                    <option value="Android">Android (Samsung, Oppo...)</option>
+                    <option value="Windows">Máy tính Windows</option>
+                    <option value="Mac">Macbook (macOS)</option>
+                </select>
             </div>
+
+            <!-- Hướng dẫn (Dynamic Guide) -->
+            <div id="guideBox" class="hidden mb-4 p-3 bg-blue-900/30 border border-blue-500/30 rounded-xl guide-enter">
+                <p class="text-[10px] text-blue-400 font-bold uppercase mb-1">💡 Hướng dẫn lấy tên máy:</p>
+                <p id="guideText" class="text-xs text-slate-300 italic"></p>
+            </div>
+
+            <!-- Tên thiết bị -->
+            <div class="mb-6">
+                <label class="block text-[10px] uppercase text-slate-500 mb-1 ml-1">Tên thiết bị (Hostname)</label>
+                <input type="text" id="deviceName" placeholder="Nhập đúng tên tìm được ở trên..." 
+                    class="w-full bg-slate-700 border border-slate-600 rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500 text-white text-sm">
+            </div>
+            
+            <div class="bg-slate-900/50 p-3 rounded-xl mb-6 border border-slate-700 flex justify-between items-center">
+                <span class="text-[9px] text-slate-500 font-bold uppercase">Network IP</span>
+                <span id="displayIp" class="text-[11px] font-mono text-blue-300 italic">Checking...</span>
+            </div>
+
+            <button onclick="handleRegister()" id="regBtn"
+                class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-xl shadow-lg transition-all active:scale-95">
+                SUBMIT REGISTER
+            </button>
         </div>
 
-        <!-- Footer -->
-        <div class="bg-gray-50 p-6 border-t border-gray-100">
-            <p class="text-center text-xs text-gray-400">
-                Registration is only available via internal OAC network.
-            </p>
+        <div id="successMessage" class="hidden text-center py-10">
+            <div class="text-6xl mb-4">✅</div>
+            <h2 class="text-xl font-black text-green-400 italic uppercase">Thành công!</h2>
+            <p class="mt-2 text-slate-400 text-xs italic">Admin đã nhận được tên máy của bạn.<br>Vui lòng đợi vài phút để được Whitelist.</p>
         </div>
     </div>
 
     <script>
-        const OFFICE_IP = "14.232.210.67";
-        const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbz-5mv4TtLv4Rtg8hGQQ2CK2dC624shDNJpmxdH5lyWZu7kSJxk4LrsxBL01CqMVO4q/exec";
-        const IP_API = "https://api.ipify.org?format=json";
+        // --- CẤU HÌNH ---
+        const OFFICE_IP = 14.232.210.67; 
+        const WEBHOOK_URL = https://script.google.com/macros/s/AKfycbz-5mv4TtLv4Rtg8hGQQ2CK2dC624shDNJpmxdH5lyWZu7kSJxk4LrsxBL01CqMVO4q/exec;
 
-        let currentIp = null;
+        const guides = {
+            'iPhone': 'Mở Cài đặt > Cài đặt chung > Giới thiệu > Tên.',
+            'Android': 'Mở Cài đặt > Giới thiệu điện thoại > Tên thiết bị.',
+            'Windows': 'Bấm phím Windows, gõ "About your PC" rồi xem "Device name".',
+            'Mac': 'Mở System Settings > General > About > Name.'
+        };
 
-        // Elements
-        const fullNameInput = document.getElementById('fullName');
-        const registerBtn = document.getElementById('register-btn');
-        const errorBanner = document.getElementById('error-banner');
-        const errorText = document.getElementById('error-text');
-        const ipStatusBanner = document.getElementById('ip-status-banner');
-        const ipIcon = document.getElementById('ip-icon');
-        const ipText = document.getElementById('ip-text');
-        const registrationView = document.getElementById('registration-view');
-        const successView = document.getElementById('success-view');
-
-        // Initial IP Fetch
-        async function fetchIp() {
-            try {
-                const res = await fetch(IP_API);
-                const data = await res.json();
-                currentIp = data.ip;
-                
-                ipStatusBanner.classList.remove('bg-gray-50', 'text-gray-500');
-                if (currentIp === OFFICE_IP) {
-                    ipStatusBanner.classList.add('bg-green-50', 'text-green-700');
-                    ipIcon.className = "fa-solid fa-wifi";
-                } else {
-                    ipStatusBanner.classList.add('bg-amber-50', 'text-amber-700');
-                    ipIcon.className = "fa-solid fa-triangle-exclamation";
-                }
-                ipText.textContent = `Current IP: ${currentIp}`;
-            } catch (err) {
-                console.error("IP detection failed:", err);
-                ipText.textContent = "Network detection failed";
-                ipIcon.className = "fa-solid fa-circle-xmark";
+        function updateGuide() {
+            const type = document.getElementById('deviceType').value;
+            const box = document.getElementById('guideBox');
+            const txt = document.getElementById('guideText');
+            if (type && guides[type]) {
+                txt.innerText = guides[type];
+                box.classList.remove('hidden');
+            } else {
+                box.classList.add('hidden');
             }
         }
 
-        // Logic
-        registerBtn.addEventListener('click', async () => {
-            const name = fullNameInput.value.trim();
-            
-            // Validation
-            if (!name) {
-                showError("Please enter your full name.");
-                return;
-            }
+        let currentIp = '';
+        fetch('https://api.ipify.org?format=json')
+            .then(res => res.json())
+            .then(data => {
+                currentIp = data.ip;
+                document.getElementById('displayIp').innerText = currentIp;
+            });
 
-            if (!currentIp) {
-                showError("Checking network connection, please wait...");
-                return;
-            }
+        async function handleRegister() {
+            const name = document.getElementById('userName').value;
+            const type = document.getElementById('deviceType').value;
+            const device = document.getElementById('deviceName').value;
 
-            if (currentIp !== OFFICE_IP) {
-                showError("Vui lòng dùng Wifi OAC");
-                return;
-            }
+            if (!name || !type || !device) return alert('Vui lòng điền đủ 3 thông tin!');
+            if (currentIp !== OFFICE_IP) return alert('Lỗi: Bạn phải dùng Wifi OAC!');
 
-            // Processing
-            hideError();
-            setLoading(true);
+            const btn = document.getElementById('regBtn');
+            btn.disabled = true;
+            btn.innerText = 'PROCESSING...';
 
             try {
-                const payload = {
-                    name: name,
-                    userAgent: navigator.userAgent,
-                    ip: currentIp
-                };
-
                 await fetch(WEBHOOK_URL, {
                     method: 'POST',
                     mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify({
+                        name: name,
+                        deviceType: type,
+                        deviceName: device,
+                        userAgent: navigator.userAgent,
+                        ip: currentIp
+                    })
                 });
-
-                // Assume success if no error thrown (standard for no-cors webhooks)
-                showSuccess();
-            } catch (err) {
-                console.error("Submission failed:", err);
-                showError("Submission failed. Please try again.");
-                setLoading(false);
-            }
-        });
-
-        // UI Helpers
-        function showError(msg) {
-            errorText.textContent = msg;
-            errorBanner.classList.remove('hidden');
-        }
-
-        function hideError() {
-            errorBanner.classList.add('hidden');
-        }
-
-        function setLoading(isLoading) {
-            if (isLoading) {
-                registerBtn.disabled = true;
-                registerBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
-            } else {
-                registerBtn.disabled = false;
-                registerBtn.textContent = 'Register My Device';
+                document.getElementById('form-container').classList.add('hidden');
+                document.getElementById('successMessage').classList.remove('hidden');
+            } catch (e) {
+                alert('Lỗi kết nối!');
+                btn.disabled = false;
+                btn.innerText = 'SUBMIT REGISTER';
             }
         }
-
-        function showSuccess() {
-            registrationView.classList.add('hidden');
-            successView.classList.remove('hidden');
-        }
-
-        // Load
-        fetchIp();
     </script>
 </body>
 </html>
