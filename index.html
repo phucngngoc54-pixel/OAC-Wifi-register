@@ -11,7 +11,7 @@
         
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif; 
-            background-color: #020617;
+            background-color: #0f172a; /* slate-900 */
         }
 
         .hidden { display: none !important; }
@@ -52,8 +52,8 @@
         }
 
         .custom-checkbox:checked {
-            background-color: #3b82f6;
-            border-color: #3b82f6;
+            background-color: #2563eb; /* blue-600 */
+            border-color: #2563eb;
         }
 
         .custom-checkbox:checked::before {
@@ -95,7 +95,7 @@
 </head>
 <body class="text-slate-100 min-h-screen flex items-center justify-center p-4 selection:bg-blue-500/30">
 
-    <div class="w-full max-w-md bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-slate-800 relative">
+    <div class="w-full max-w-md bg-slate-800 rounded-3xl shadow-2xl overflow-hidden border border-slate-700 relative">
         <!-- Top accent -->
         <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-indigo-500 to-blue-600"></div>
 
@@ -115,7 +115,7 @@
             </div>
 
             <!-- Network Status -->
-            <div id="ip-status-banner" class="mb-6 p-4 rounded-2xl flex items-center gap-3 text-xs font-semibold bg-slate-800/50 border border-slate-700 transition-all duration-300">
+            <div id="ip-status-banner" class="mb-6 p-4 rounded-2xl flex items-center gap-3 text-xs font-semibold bg-slate-900/50 border border-slate-700 transition-all duration-300">
                 <div id="ip-indicator" class="w-2 h-2 rounded-full bg-slate-500 animate-pulse"></div>
                 <span id="ip-text" class="text-slate-400">Verifying network connection...</span>
             </div>
@@ -136,7 +136,7 @@
                     <div class="relative">
                         <select
                             id="nameSelect"
-                            class="w-full bg-slate-800 border border-slate-700 text-white px-5 py-4 rounded-2xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all appearance-none font-bold text-lg cursor-pointer"
+                            class="w-full bg-slate-900 border border-slate-700 text-white px-5 py-4 rounded-2xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all appearance-none font-bold text-lg cursor-pointer"
                         >
                             <option value="" disabled selected>Tap to select...</option>
                             <option value="Coby">Coby</option>
@@ -156,7 +156,7 @@
                 </div>
 
                 <!-- Checkbox -->
-                <label class="flex items-center gap-4 p-5 rounded-2xl border border-slate-700 bg-slate-800/50 cursor-pointer hover:bg-slate-800 transition-colors group">
+                <label class="flex items-center gap-4 p-5 rounded-2xl border border-slate-700 bg-slate-900/50 cursor-pointer hover:bg-slate-900 transition-colors group">
                     <input type="checkbox" id="hereCheckbox" class="custom-checkbox">
                     <span class="text-xl font-bold text-slate-200 group-hover:text-white transition-colors">I'm here</span>
                 </label>
@@ -194,7 +194,7 @@
 
     <script>
         const OFFICE_IP = "14.232.210.67";
-        const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzp55iIP10jDPRw0BHhXNcDeAV13x6zegspma2i453ylQiywOqp-XNzgnkHUadTRftV/exec";
+        const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbw-l-IQTh0DaO0qzZ-EMofnukvjkqVKpoRJwy74A4PyztWTImAAgtFU-ZdyydK5dFxA/exec";
         const IP_API = "https://api.ipify.org?format=json";
         const COOLDOWN_HOURS = 12;
 
@@ -309,7 +309,7 @@
             }
 
             if (currentIp !== OFFICE_IP) {
-                showError("You must be connected to the OAC Office Wifi to check in.");
+                showError("Vui lòng dùng Wifi OAC để check-in");
                 return;
             }
 
@@ -318,8 +318,7 @@
 
             try {
                 const payload = {
-                    name: name,
-                    status: "I'm here"
+                    name: name
                 };
 
                 await fetch(WEBHOOK_URL, {
@@ -335,6 +334,12 @@
                 // Show success
                 formView.classList.add('hidden');
                 successView.classList.remove('hidden');
+                
+                // Refresh after 2 seconds to trigger 12-hour lock UI
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);
+                
             } catch (err) {
                 console.error("Submission failed:", err);
                 showError("Failed to submit check-in. Please try again.");
