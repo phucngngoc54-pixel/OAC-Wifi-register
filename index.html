@@ -3,26 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OAC Device Registration</title>
+    <title>OAC QR Check-in</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
         
-        :root {
-            --primary: #3b82f6;
-            --primary-hover: #60a5fa;
-            --bg: #020617;
-            --card-bg: #0f172a;
-            --input-bg: #1e293b;
-        }
-
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif; 
-            background-color: var(--bg);
+            background-color: #020617;
         }
 
-        .hidden { display: none; }
+        .hidden { display: none !important; }
         
         .fade-in { animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         @keyframes fadeIn {
@@ -30,8 +22,42 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .mono {
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        /* Custom Checkbox */
+        .custom-checkbox {
+            appearance: none;
+            background-color: #1e293b;
+            margin: 0;
+            font: inherit;
+            color: currentColor;
+            width: 1.75em;
+            height: 1.75em;
+            border: 2px solid #334155;
+            border-radius: 0.5em;
+            display: grid;
+            place-content: center;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+
+        .custom-checkbox::before {
+            content: "";
+            width: 1em;
+            height: 1em;
+            transform: scale(0);
+            transition: 120ms transform ease-in-out;
+            box-shadow: inset 1em 1em white;
+            background-color: white;
+            transform-origin: center;
+            clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+        }
+
+        .custom-checkbox:checked {
+            background-color: #3b82f6;
+            border-color: #3b82f6;
+        }
+
+        .custom-checkbox:checked::before {
+            transform: scale(1);
         }
 
         /* Success Animation */
@@ -66,131 +92,102 @@
         @keyframes scale { 0%, 100% { transform: none; } 50% { transform: scale3d(1.1, 1.1, 1); } }
         @keyframes fill { 100% { box-shadow: inset 0px 0px 0px 30px #22c55e00; } }
     </style>
-<link rel="stylesheet" href="/index.css">
 </head>
 <body class="text-slate-100 min-h-screen flex items-center justify-center p-4 selection:bg-blue-500/30">
 
-    <div class="w-full max-w-lg bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-slate-800 relative">
+    <div class="w-full max-w-md bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-slate-800 relative">
         <!-- Top accent -->
         <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-indigo-500 to-blue-600"></div>
 
-        <div class="p-8 sm:p-10">
-            <!-- Registration View -->
-            <div id="registration-view">
-                <div class="text-center mb-8">
-                    <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-600/10 rounded-2xl mb-4 border border-blue-500/20">
-                        <i class="fa-solid fa-wifi text-2xl text-blue-500"></i>
-                    </div>
-                    <h1 class="text-3xl font-extrabold text-white tracking-tight">OAC Wifi</h1>
-                    <p class="text-slate-400 mt-2 text-sm font-medium">Device Registration Portal</p>
+        <div class="p-8">
+            <!-- Header & Time -->
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-600/10 rounded-2xl mb-4 border border-blue-500/20">
+                    <i class="fa-solid fa-qrcode text-3xl text-blue-500"></i>
                 </div>
-
-                <!-- Network Status -->
-                <div id="ip-status-banner" class="mb-8 p-4 rounded-2xl flex items-center gap-3 text-xs font-semibold bg-slate-800/50 border border-slate-700 transition-all duration-300">
-                    <div id="ip-indicator" class="w-2 h-2 rounded-full bg-slate-500 animate-pulse"></div>
-                    <span id="ip-text" class="text-slate-400">Verifying network connection...</span>
-                </div>
-
-                <div class="space-y-5">
-                    <!-- Full Name -->
-                    <div>
-                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Full Name</label>
-                        <div class="relative group">
-                            <i class="fa-regular fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-500 transition-colors"></i>
-                            <input
-                                type="text"
-                                id="fullName"
-                                placeholder="Enter your full name"
-                                class="w-full bg-slate-800 border border-slate-700 text-white pl-11 pr-4 py-3.5 rounded-2xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all placeholder:text-slate-600 font-medium"
-                            >
-                        </div>
-                    </div>
-
-                    <!-- Device Type Selection -->
-                    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Device Type</label>
-                            <div class="relative">
-                                <select
-                                    id="deviceType"
-                                    class="w-full bg-slate-800 border border-slate-700 text-white px-4 py-3.5 rounded-2xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all appearance-none font-medium cursor-pointer"
-                                >
-                                    <option value="" disabled selected>Select type</option>
-                                    <option value="iPhone">iPhone</option>
-                                    <option value="Android">Android</option>
-                                    <option value="Windows">Windows</option>
-                                    <option value="Mac">Mac</option>
-                                </select>
-                                <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none text-xs"></i>
-                            </div>
-                        </div>
-
-                        <!-- MAC Address Input -->
-                        <div>
-                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">MAC Address</label>
-                            <input
-                                type="text"
-                                id="macAddress"
-                                maxlength="17"
-                                placeholder="AA:BB:CC:DD:EE:FF"
-                                class="w-full bg-slate-800 border border-slate-700 text-white px-4 py-3.5 rounded-2xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all placeholder:text-slate-600 font-medium mono"
-                            >
-                            <p class="text-[10px] text-slate-500 mt-1.5 ml-1 font-medium italic">MAC address will have a format like 12:52:ef:ab:4e</p>
-                        </div>
-                    </div>
-
-                    <!-- Dynamic Guide -->
-                    <div id="guide-box" class="hidden bg-indigo-500/10 border border-indigo-500/20 p-4 rounded-2xl fade-in">
-                        <div class="flex gap-3">
-                            <i class="fa-solid fa-circle-info text-indigo-400 mt-1"></i>
-                            <div>
-                                <h4 class="text-xs font-bold text-indigo-300 uppercase tracking-tighter mb-1">How to find MAC Address</h4>
-                                <p id="guide-text" class="text-sm text-indigo-100/80 leading-relaxed"></p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Error Message -->
-                    <div id="error-banner" class="hidden bg-rose-500/10 border border-rose-500/20 p-4 rounded-2xl fade-in">
-                        <div class="flex gap-3">
-                            <i class="fa-solid fa-circle-exclamation text-rose-500 mt-0.5"></i>
-                            <p id="error-text" class="text-sm text-rose-200 font-medium"></p>
-                        </div>
-                    </div>
-
-                    <button
-                        id="register-btn"
-                        class="w-full py-4 px-6 rounded-2xl font-bold text-white shadow-lg shadow-blue-500/20 transform transition-all active:scale-95 flex items-center justify-center gap-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed mt-4"
-                    >
-                        Register My Device
-                    </button>
+                <h1 class="text-2xl font-extrabold text-white tracking-tight">OAC Check-in</h1>
+                
+                <!-- Time Display -->
+                <div class="mt-4">
+                    <div id="current-time" class="text-5xl font-black text-blue-400 tracking-tighter">--:--:--</div>
+                    <div id="current-date" class="text-slate-400 mt-2 text-sm font-bold uppercase tracking-widest">---</div>
                 </div>
             </div>
 
+            <!-- Network Status -->
+            <div id="ip-status-banner" class="mb-6 p-4 rounded-2xl flex items-center gap-3 text-xs font-semibold bg-slate-800/50 border border-slate-700 transition-all duration-300">
+                <div id="ip-indicator" class="w-2 h-2 rounded-full bg-slate-500 animate-pulse"></div>
+                <span id="ip-text" class="text-slate-400">Verifying network connection...</span>
+            </div>
+
+            <!-- Cooldown View -->
+            <div id="cooldown-view" class="hidden text-center py-6 fade-in bg-blue-500/10 border border-blue-500/20 rounded-2xl">
+                <i class="fa-solid fa-clock text-4xl text-blue-400 mb-4"></i>
+                <h3 class="text-lg font-bold text-white mb-2">Bạn đã check-in rồi!</h3>
+                <p class="text-blue-200/80 text-sm px-4">Hẹn gặp lại sau 12h nhé.</p>
+                <p id="cooldown-timer" class="text-xs text-blue-400 mt-4 font-mono"></p>
+            </div>
+
+            <!-- Main Form View -->
+            <div id="form-view" class="space-y-6 fade-in">
+                <!-- Name Selection -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Select Your Name</label>
+                    <div class="relative">
+                        <select
+                            id="nameSelect"
+                            class="w-full bg-slate-800 border border-slate-700 text-white px-5 py-4 rounded-2xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all appearance-none font-bold text-lg cursor-pointer"
+                        >
+                            <option value="" disabled selected>Tap to select...</option>
+                            <option value="Coby">Coby</option>
+                            <option value="Lauren">Lauren</option>
+                            <option value="Ellie">Ellie</option>
+                            <option value="Matthew">Matthew</option>
+                            <option value="Lucy">Lucy</option>
+                            <option value="Chloe">Chloe</option>
+                            <option value="Tyler">Tyler</option>
+                            <option value="Tess">Tess</option>
+                            <option value="Tracy">Tracy</option>
+                            <option value="Cindi">Cindi</option>
+                            <option value="Daisy">Daisy</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none"></i>
+                    </div>
+                </div>
+
+                <!-- Checkbox -->
+                <label class="flex items-center gap-4 p-5 rounded-2xl border border-slate-700 bg-slate-800/50 cursor-pointer hover:bg-slate-800 transition-colors group">
+                    <input type="checkbox" id="hereCheckbox" class="custom-checkbox">
+                    <span class="text-xl font-bold text-slate-200 group-hover:text-white transition-colors">I'm here</span>
+                </label>
+
+                <!-- Error Message -->
+                <div id="error-banner" class="hidden bg-rose-500/10 border border-rose-500/20 p-4 rounded-2xl fade-in">
+                    <div class="flex gap-3">
+                        <i class="fa-solid fa-circle-exclamation text-rose-500 mt-0.5"></i>
+                        <p id="error-text" class="text-sm text-rose-200 font-medium"></p>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button
+                    id="checkin-btn"
+                    class="w-full py-5 px-6 rounded-2xl font-black text-xl text-white shadow-lg shadow-blue-500/20 transform transition-all active:scale-95 flex items-center justify-center gap-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider mt-2"
+                >
+                    CHECK-IN
+                </button>
+            </div>
+
             <!-- Success View -->
-            <div id="success-view" class="hidden text-center py-10 fade-in">
+            <div id="success-view" class="hidden text-center py-8 fade-in">
                 <div class="mb-6">
                     <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
                         <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
                         <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
                     </svg>
                 </div>
-                <h2 class="text-3xl font-extrabold text-white mb-3">Registration Successful!</h2>
-                <p class="text-slate-400 max-w-xs mx-auto mb-10 text-sm">Thông tin thiết bị đã được ghi nhận. Hệ thống sẽ xử lý và cấp quyền truy cập sớm nhất có thể.</p>
-                <button 
-                    onclick="location.reload()"
-                    class="px-8 py-3 bg-slate-800 hover:bg-slate-700 rounded-xl text-sm font-bold text-white transition-all inline-flex items-center gap-2"
-                >
-                    <i class="fa-solid fa-rotate-left text-xs"></i> Register Another
-                </button>
-            </div>
-        </div>
-
-        <!-- Footer -->
-        <div class="bg-slate-950/50 p-6 border-t border-slate-800/50">
-            <div class="flex items-center justify-center gap-2 text-slate-500">
-                <i class="fa-solid fa-shield-halved text-xs"></i>
-                <span class="text-[10px] font-bold uppercase tracking-[0.2em]">OAC Network Compliance</span>
+                <h2 class="text-2xl font-extrabold text-white mb-2">Check-in Successful!</h2>
+                <p class="text-slate-400 text-sm">Have a great day at work.</p>
             </div>
         </div>
     </div>
@@ -199,32 +196,73 @@
         const OFFICE_IP = "14.232.210.67";
         const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzp55iIP10jDPRw0BHhXNcDeAV13x6zegspma2i453ylQiywOqp-XNzgnkHUadTRftV/exec";
         const IP_API = "https://api.ipify.org?format=json";
-
-        const guides = {
-            'iPhone': 'Cài đặt > Wi-Fi > Bấm (i) cạnh Wifi OAC > Copy Địa chỉ Wi-Fi.',
-            'Android': 'Cài đặt > Wifi > Bánh răng cạnh Wifi OAC > Xem thêm > Địa chỉ MAC.',
-            'Windows': 'Settings > Network & internet > Wi-Fi > Hardware properties > Physical address (MAC).',
-            'Mac': 'Wifi Settings > Details cạnh Wifi OAC > Hardware > MAC Address.'
-        };
+        const COOLDOWN_HOURS = 12;
 
         let currentIp = null;
 
         // DOM Elements
-        const fullNameInput = document.getElementById('fullName');
-        const deviceTypeSelect = document.getElementById('deviceType');
-        const macInput = document.getElementById('macAddress');
-        const registerBtn = document.getElementById('register-btn');
-        const errorBanner = document.getElementById('error-banner');
-        const errorText = document.getElementById('error-text');
+        const timeDisplay = document.getElementById('current-time');
+        const dateDisplay = document.getElementById('current-date');
         const ipStatusBanner = document.getElementById('ip-status-banner');
         const ipIndicator = document.getElementById('ip-indicator');
         const ipText = document.getElementById('ip-text');
-        const guideBox = document.getElementById('guide-box');
-        const guideText = document.getElementById('guide-text');
-        const registrationView = document.getElementById('registration-view');
+        
+        const formView = document.getElementById('form-view');
+        const cooldownView = document.getElementById('cooldown-view');
         const successView = document.getElementById('success-view');
+        const cooldownTimer = document.getElementById('cooldown-timer');
+        
+        const nameSelect = document.getElementById('nameSelect');
+        const hereCheckbox = document.getElementById('hereCheckbox');
+        const checkinBtn = document.getElementById('checkin-btn');
+        const errorBanner = document.getElementById('error-banner');
+        const errorText = document.getElementById('error-text');
 
-        // Initial IP Fetch
+        // Clock
+        function updateClock() {
+            const now = new Date();
+            timeDisplay.textContent = now.toLocaleTimeString('en-US', { hour12: false });
+            dateDisplay.textContent = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Cooldown Logic
+        function checkCooldown() {
+            const lastCheckIn = localStorage.getItem('oac_last_checkin');
+            if (lastCheckIn) {
+                const lastTime = new Date(parseInt(lastCheckIn));
+                const now = new Date();
+                const diffHours = (now - lastTime) / (1000 * 60 * 60);
+                
+                if (diffHours < COOLDOWN_HOURS) {
+                    formView.classList.add('hidden');
+                    cooldownView.classList.remove('hidden');
+                    
+                    // Optional: show remaining time
+                    const updateTimer = () => {
+                        const currentNow = new Date();
+                        const remainingMs = (COOLDOWN_HOURS * 60 * 60 * 1000) - (currentNow - lastTime);
+                        if (remainingMs <= 0) {
+                            localStorage.removeItem('oac_last_checkin');
+                            location.reload();
+                            return;
+                        }
+                        const remainingHours = Math.floor(remainingMs / (1000 * 60 * 60));
+                        const remainingMins = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
+                        cooldownTimer.textContent = `Time remaining: ${remainingHours}h ${remainingMins}m`;
+                    };
+                    updateTimer();
+                    setInterval(updateTimer, 60000); // Update every minute
+                    return true;
+                } else {
+                    localStorage.removeItem('oac_last_checkin');
+                }
+            }
+            return false;
+        }
+
+        // IP Check
         async function fetchIp() {
             try {
                 const res = await fetch(IP_API);
@@ -250,54 +288,28 @@
             }
         }
 
-        // MAC Address Auto-formatting
-        macInput.addEventListener('input', (e) => {
-            let value = e.target.value.toUpperCase().replace(/[^0-9A-F]/g, '');
-            let formatted = "";
-            for (let i = 0; i < value.length; i++) {
-                if (i > 0 && i % 2 === 0 && formatted.length < 17) {
-                    formatted += ":";
-                }
-                formatted += value[i];
-            }
-            e.target.value = formatted.substring(0, 17);
-        });
+        // Check-in Action
+        checkinBtn.addEventListener('click', async () => {
+            const name = nameSelect.value;
+            const isHere = hereCheckbox.checked;
 
-        // Dynamic Guide Logic
-        deviceTypeSelect.addEventListener('change', (e) => {
-            const val = e.target.value;
-            if (guides[val]) {
-                guideText.textContent = guides[val];
-                guideBox.classList.remove('hidden');
-            } else {
-                guideBox.classList.add('hidden');
-            }
-        });
-
-        // Registration Logic
-        registerBtn.addEventListener('click', async () => {
-            const name = fullNameInput.value.trim();
-            const deviceType = deviceTypeSelect.value;
-            const mac = macInput.value.trim();
-            
-            // Validation
-            if (!name || !deviceType || !mac) {
-                showError("Vui lòng điền đầy đủ tất cả thông tin.");
+            if (!name) {
+                showError("Please select your name.");
                 return;
             }
 
-            if (mac.length !== 17) {
-                showError("Địa chỉ MAC phải đủ 17 ký tự (VD: AA:BB:CC:DD:EE:FF)");
+            if (!isHere) {
+                showError("Please check the 'I'm here' box.");
                 return;
             }
 
             if (!currentIp) {
-                showError("Đang kiểm tra kết nối mạng, vui lòng đợi...");
+                showError("Verifying network, please wait...");
                 return;
             }
 
             if (currentIp !== OFFICE_IP) {
-                showError("Vui lòng dùng Wifi OAC");
+                showError("You must be connected to the OAC Office Wifi to check in.");
                 return;
             }
 
@@ -305,12 +317,9 @@
             setLoading(true);
 
             try {
-                // Construct payload: {name, deviceType, mac, ip}
                 const payload = {
                     name: name,
-                    deviceType: deviceType,
-                    mac: mac,
-                    ip: currentIp
+                    status: "I'm here"
                 };
 
                 await fetch(WEBHOOK_URL, {
@@ -320,10 +329,15 @@
                     body: JSON.stringify(payload)
                 });
 
-                showSuccess();
+                // Set cooldown
+                localStorage.setItem('oac_last_checkin', Date.now().toString());
+
+                // Show success
+                formView.classList.add('hidden');
+                successView.classList.remove('hidden');
             } catch (err) {
                 console.error("Submission failed:", err);
-                showError("Có lỗi xảy ra khi gửi dữ liệu. Thử lại sau.");
+                showError("Failed to submit check-in. Please try again.");
                 setLoading(false);
             }
         });
@@ -340,22 +354,21 @@
 
         function setLoading(isLoading) {
             if (isLoading) {
-                registerBtn.disabled = true;
-                registerBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
+                checkinBtn.disabled = true;
+                checkinBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
             } else {
-                registerBtn.disabled = false;
-                registerBtn.textContent = 'Register My Device';
+                checkinBtn.disabled = false;
+                checkinBtn.textContent = 'CHECK-IN';
             }
         }
 
-        function showSuccess() {
-            registrationView.classList.add('hidden');
-            successView.classList.remove('hidden');
+        // Init
+        if (!checkCooldown()) {
+            fetchIp();
+        } else {
+            // Still fetch IP to show status, but form is hidden
+            fetchIp();
         }
-
-        // Start
-        fetchIp();
     </script>
-<script type="module" src="/index.tsx"></script>
 </body>
 </html>
