@@ -288,6 +288,18 @@
             }
         }
 
+        // Device Info
+        function getDeviceName() {
+            const ua = navigator.userAgent;
+            if (/iPhone/i.test(ua)) return 'iPhone';
+            if (/iPad/i.test(ua)) return 'iPad';
+            if (/Android/i.test(ua)) return 'Android';
+            if (/Windows/i.test(ua)) return 'Windows';
+            if (/Mac/i.test(ua)) return 'Mac';
+            if (/Linux/i.test(ua)) return 'Linux';
+            return 'Other Device';
+        }
+
         // Check-in Action
         checkinBtn.addEventListener('click', async () => {
             const name = nameSelect.value;
@@ -317,8 +329,10 @@
             setLoading(true);
 
             try {
+                const deviceName = getDeviceName();
                 const payload = {
-                    name: name
+                    name: name,
+                    deviceName: deviceName
                 };
 
                 await fetch(WEBHOOK_URL, {
